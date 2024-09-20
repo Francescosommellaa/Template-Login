@@ -2,30 +2,32 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\Guest\PageController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+// Rotta per la homepage per gli ospiti
+Route::get('/', [PageController::class, 'index'])->name('guest.index');
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
+// Gruppo di rotte per gli utenti autenticati
 Route::middleware('auth')->group(function () {
+    // Mostra la pagina del profilo
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+
+    // Aggiorna il profilo
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Cancella il profilo
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+// Rotte per l'area amministrativa, accessibili solo agli utenti autenticati e verificati
+Route::middleware(['auth', 'verified'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        // Mostra la dashboard dell'amministratore
+        Route::get('/', [UserController::class, 'index'])->name('home');
+    });
+
+// Include le rotte di autenticazione
+require __DIR__ . '/auth.php';
